@@ -13,6 +13,7 @@ Table of Contents
   * [Source installation go  &gt;= 1.12](#source-installation-go---112)
   * [Installation of your self-hosted Server](#installation-of-your-self-hosted-server)
 * [Github Setup](#github-setup)
+* [Docker Setup](#docker-setup)
 
 
 # tunneller
@@ -115,3 +116,24 @@ pull-requests are created/updated.  The testing is carried out via
 
 Releases are automated in a similar fashion via [.github/build](.github/build),
 and the [github-action-publish-binaries](https://github.com/skx/github-action-publish-binaries) action.
+
+## Docker Setup
+### Compose
+```bash
+docker compose up -d
+```
+
+Make sure you have traefik in docker compose mode with entrypoint `web` to port 80
+
+### Swarm
+
+Same same...
+
+## Run on docker client
+
+See: [Source installation go  &gt;= 1.12](#source-installation-go---112)
+
+```bash
+tunneller client -expose 3000 -tunnel tunnel.example.com --name wskd
+```
+

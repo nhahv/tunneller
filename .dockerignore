@@ -1,0 +1,7 @@
+.idea
+.vs-code
+.github
+.git/
+.local/
+Dockerfile
+docker-compose.yml

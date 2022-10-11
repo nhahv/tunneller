@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+    networks:
+      - traefik-public
+    volumes:
+      - mosquitto:/mosquitto
+    configs:
+      - source: mosquitto_conf
+        target: /mosquitto/config/mosquitto.conf
+  tunneller:
+    image: nhahv/tunneller:0.7
+    ports:
+      - "28080:8080"
+    command:
+      - tunneller
+      - serve
+      - -mq-host
+      - mosquitto
+      - -host
+      - 0.0.0.0
+    networks:
+      - traefik-public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.http.routers.tunneller.entrypoints=web
+        - traefik.http.routers.tunneller.priority=2
+        - traefik.http.routers.tunneller.rule=HostRegexp(`{subdomain:.+}.tunnel.example.com`)
+        - traefik.http.services.tunneller.loadbalancer.server.port=8080
+networks:
+  traefik-public:
+    external: true
+volumes:
+  mosquitto: {}
+configs:
+  mosquitto_conf:
+    external: true

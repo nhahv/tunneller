@@ -24,12 +24,34 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/subcommands"
 )
+
+func getEnv(key, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = fallback
+	}
+	return value
+}
+
+func getEnvInt(key string, fallback int) int {
+	value, exists := os.LookupEnv(key)
+	if exists {
+		number, err := strconv.Atoi(value)
+		if err == nil {
+			return number
+		}
+		return fallback
+	}
+	return fallback
+}
 
 //
 // serveCmd is the structure for this sub-command.
@@ -46,6 +68,9 @@ type serveCmd struct {
 
 	// The port MQ listens upon
 	mqPort int
+
+	//
+	mqHost string
 }
 
 // Name returns the name of this sub-command.
@@ -63,9 +88,10 @@ func (p *serveCmd) Usage() string {
 
 // SetFlags configures the flags this sub-command accepts.
 func (p *serveCmd) SetFlags(f *flag.FlagSet) {
-	f.IntVar(&p.bindPort, "port", 8080, "The port to bind upon.")
-	f.IntVar(&p.mqPort, "mq-port", 1883, "The MQ port.")
-	f.StringVar(&p.bindHost, "host", "127.0.0.1", "The IP to listen upon.")
+	f.StringVar(&p.bindHost, "host", getEnv("HOST", "127.0.0.1"), "The IP to listen upon.")
+	f.IntVar(&p.bindPort, "port", getEnvInt("PORT", 8080), "The port to bind upon.")
+	f.IntVar(&p.mqPort, "mq-port", getEnvInt("MQ_PORT", 1883), "The MQ port.")
+	f.StringVar(&p.mqHost, "mq-host", getEnv("MQ_HOST", "127.0.0.1"), "The address of Mosquitto host")
 }
 
 //
@@ -298,7 +324,7 @@ func (p *serveCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{})
 	//
 	// Connect to our MQ instance.
 	//
-	mq := fmt.Sprintf("tcp://localhost:%d", p.mqPort)
+	mq := fmt.Sprintf("tcp://%s:%d", p.mqHost, p.mqPort)
 	fmt.Printf("Connecting to MQ %s\n", mq)
 
 	opts := MQTT.NewClientOptions().AddBroker(mq)

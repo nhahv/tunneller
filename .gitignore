@@ -1,3 +1,6 @@
+.idea
+.vscode
+.local
 tunneller
 public.pem
 private.pem
